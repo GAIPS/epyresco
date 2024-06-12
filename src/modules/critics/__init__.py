@@ -6,11 +6,7 @@ from .maddpg import MADDPGCritic
 from .maddpg_ns import MADDPGCriticNS
 from .ac import ACCritic
 from .ac_ns import ACCriticNS
-<<<<<<< HEAD
-=======
 
-
->>>>>>> bc68887 (cleanup code and split requirements)
 REGISTRY = {}
 
 REGISTRY["coma_critic"] = COMACritic
