@@ -6,6 +6,11 @@ from .maddpg import MADDPGCritic
 from .maddpg_ns import MADDPGCriticNS
 from .ac import ACCritic
 from .ac_ns import ACCriticNS
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> bc68887 (cleanup code and split requirements)
 REGISTRY = {}
 
 REGISTRY["coma_critic"] = COMACritic
@@ -18,3 +23,11 @@ REGISTRY["ac_critic"] = ACCritic
 REGISTRY["ac_critic_ns"] = ACCriticNS
 
 
+def register_pac_critics():
+    from .pac_ac import PACCritic
+    from .pac_ac_ns import PACCriticNS
+    from .pac_dcg_ns import DCGCriticNS
+
+    REGISTRY["pac_critic"] = PACCritic
+    REGISTRY["pac_critic_ns"] = PACCriticNS
+    REGISTRY["pac_dcg_critic_ns"] = DCGCriticNS

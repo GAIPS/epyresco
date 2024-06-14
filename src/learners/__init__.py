@@ -4,8 +4,9 @@ from .qtran_learner import QLearner as QTranLearner
 from .actor_critic_learner import ActorCriticLearner
 from .maddpg_learner import MADDPGLearner
 from .ppo_learner import PPOLearner
-REGISTRY = {}
 
+
+REGISTRY = {}
 REGISTRY["q_learner"] = QLearner
 REGISTRY["coma_learner"] = COMALearner
 REGISTRY["qtran_learner"] = QTranLearner
