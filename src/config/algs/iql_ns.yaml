@@ -4,8 +4,9 @@
 action_selector: "epsilon_greedy"
 epsilon_start: 1.0
 epsilon_finish: 0.05
-epsilon_anneal_time: 57_600
+epsilon_anneal_time: 126_000
 evaluation_epsilon: 0.0
+lr: 0.001
 
 runner: "episode"
 
@@ -13,7 +14,8 @@ runner: "episode"
 buffer_size: 50
 
 # update the target network every {} episodes
-target_update_interval_or_tau: 200
+# target_update_interval_or_tau: 10
+target_update_interval_or_tau: 0.01
 
 
 obs_agent_id: False
