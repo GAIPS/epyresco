@@ -4,6 +4,7 @@ import sys
 from smac.env import MultiAgentEnv, StarCraft2Env
 
 from .gymma import GymmaWrapper
+from .resco import RescoWrapper
 
 
 def smac_fn(**kwargs) -> MultiAgentEnv:
@@ -21,6 +22,11 @@ def gymma_fn(**kwargs) -> MultiAgentEnv:
     return GymmaWrapper(**kwargs)
 
 
+def resco_fn(**kwargs) -> MultiAgentEnv:
+    assert "common_reward" in kwargs and "reward_scalarisation" in kwargs
+    return RescoWrapper(**kwargs)
+
+
 REGISTRY = {}
 REGISTRY["sc2"] = smac_fn
 
@@ -30,3 +36,4 @@ if sys.platform == "linux":
     )
 
 REGISTRY["gymma"] = gymma_fn
+REGISTRY["resco"] = resco_fn
