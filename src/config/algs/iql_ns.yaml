@@ -24,7 +24,7 @@ common_reward: False
 
 # use the Q_Learner to train
 mac: "non_shared_mac"
-agent: "rnn_ns"
+agent: "cnn_ns"
 agent_output_type: "q"
 learner: "q_learner"
 standardise_returns: False

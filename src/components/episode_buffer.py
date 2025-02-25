@@ -77,6 +77,9 @@ class EpisodeBatch:
                 shape = (groups[group], *vshape)
             else:
                 shape = vshape
+            # TODO: Find a better solution for this.
+            if field_key == "obs":
+                shape = (groups[group], max(map(lambda x: x[0] * x[1], vshape)))
 
             if episode_const:
                 self.data.episode_data[field_key] = th.zeros(

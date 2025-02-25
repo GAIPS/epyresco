@@ -98,7 +98,10 @@ def run_sequential(args, logger):
     # Default/Base scheme
     scheme = {
         "state": {"vshape": env_info["state_shape"]},
-        "obs": {"vshape": env_info["obs_shape"], "group": "agents"},
+        "obs": {
+            "vshape": env_info["obs_shape"],
+            "group": "agents",
+        },
         "actions": {"vshape": (1,), "group": "agents", "dtype": th.long},
         "avail_actions": {
             "vshape": (env_info["n_actions"],),
@@ -113,7 +116,9 @@ def run_sequential(args, logger):
     else:
         scheme["reward"] = {"vshape": (args.n_agents,)}
     groups = {"agents": args.n_agents}
-    preprocess = {"actions": ("actions_onehot", [OneHot(out_dim=args.n_actions)])}
+    preprocess = {
+        "actions": ("actions_onehot", [OneHot(out_dim=args.n_actions)]),
+    }
 
     buffer = ReplayBuffer(
         scheme,
@@ -216,7 +221,7 @@ def run_sequential(args, logger):
             )
             last_time = time.time()
 
-            # last_test_T = runner.t_env
+            last_test_T = runner.t_env
             # for _ in range(n_test_runs):
             #     runner.run(test_mode=True)
 
