@@ -27,6 +27,7 @@ class NonSharedMAC:
 
     def forward(self, ep_batch, t, test_mode=False):
         agent_inputs = self._build_inputs(ep_batch, t)
+
         avail_actions = ep_batch["avail_actions"][:, t]
         # agent_outs, self.hidden_states = self.agent(agent_inputs, self.hidden_states)
         agent_outs = self.agent(agent_inputs, None)
@@ -35,10 +36,10 @@ class NonSharedMAC:
         if self.agent_output_type == "pi_logits":
             if getattr(self.args, "mask_before_softmax", True):
                 # Make the logits for unavailable actions very negative to minimise their affect on the softmax
-                reshaped_avail_actions = avail_actions.reshape(
-                    ep_batch.batch_size * self.n_agents, -1
-                )
-                agent_outs[reshaped_avail_actions == 0] = -1e10
+                # reshaped_avail_actions = avail_actions.reshape(
+                #     ep_batch.batch_size * self.n_agents, -1
+                # )
+                agent_outs[avail_actions == 0] = -1e10
 
             agent_outs = th.nn.functional.softmax(agent_outs, dim=-1)
         return agent_outs.view(ep_batch.batch_size, self.n_agents, -1)

@@ -1,6 +1,7 @@
 import torch.nn as nn
 from modules.agents.cnn_agent import CNNAgent
 import torch as th
+from IPython.core.debugger import set_trace
 
 
 class CNNNSAgent(nn.Module):
@@ -28,8 +29,10 @@ class CNNNSAgent(nn.Module):
             for i in range(self.n_agents):
                 q = self.agents[i](inputs.select(1, i))
                 qs.append(q.unsqueeze(1))
+                # qs.append(q)
             # return th.cat(qs, dim=-1).view(-1, q.size(-1)), th.cat(hiddens, dim=1)
-            return th.cat(qs, dim=-1)
+            return th.cat(qs, dim=1)
+            # return th.cat(qs, dim=0)
 
     def cuda(self, device="cuda:0"):
         for a in self.agents:

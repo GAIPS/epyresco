@@ -39,6 +39,9 @@ class ACCriticNS(nn.Module):
     def _get_input_shape(self, scheme):
         # observations
         input_shape = scheme["obs"]["vshape"]
+        if isinstance(input_shape, tuple):
+            # Longest observation
+            input_shape = max(map(lambda x: x[0] * x[1], input_shape))
         return input_shape
 
     def parameters(self):
