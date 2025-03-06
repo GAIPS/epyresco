@@ -159,3 +159,11 @@ class RescoWrapper(MultiAgentEnv):
 
     def get_stats(self):
         return {}
+
+    def get_env_info(self):
+        env_info = super().get_env_info()
+
+        # Resco specific parameters
+        env_info["all_ts_ids"] = self._env.all_ts_ids
+        env_info["neighbors"] = self._env.get_ts_neighbors()
+        return env_info

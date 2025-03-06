@@ -39,6 +39,10 @@ optim_eps: 0.00001 # RMSProp epsilon
 grad_norm_clip: 10 # Reduce magnitude of gradients above this L2 norm
 add_value_last_step: True
 
+# --- Consensus parameters ---
+debug: False
+q_temporal_difference: False
+
 # --- Agent parameters ---
 agent: "rnn" # Default rnn agent
 hidden_dim: 64 # Size of hidden state for default rnn agent

@@ -1,4 +1,5 @@
 import copy
+import numpy as np
 
 import torch as th
 from torch.optim import Adam
@@ -47,6 +48,9 @@ class QLearner:
         if self.args.standardise_rewards:
             rew_shape = (1,) if self.args.common_reward else (self.n_agents,)
             self.rew_ms = RunningMeanStd(shape=rew_shape, device=device)
+
+        if self.args.q_temporal_difference:
+            self.cwm = self.args.cwm
 
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):
         # Get the relevant quantities
@@ -134,8 +138,22 @@ class QLearner:
         # 0-out the targets that came from padded data
         masked_td_error = td_error * mask
 
-        # Normal L2 loss, take mean over actual data
-        loss = (masked_td_error**2).sum() / mask.sum()
+        # Pushes temporal difference as a message
+        td_network = th.zeros_like(masked_td_error).requires_grad_(False)
+        if self.args.q_temporal_difference:
+            with th.no_grad():
+                td_network = masked_td_error.detach().clone()
+                td_network = th.einsum(  # [n, b, t]
+                    "nm, mij-> nij", self.cwm, td_network.permute((2, 0, 1))
+                )
+                td_network = td_network.permute((1, 2, 0))  # [b, t, n]
+                td_network = (
+                    td_network * self.n_agents - masked_td_error.detach().clone()
+                )
+            # Normal L2 loss, take mean over actual data
+            loss = ((masked_td_error + td_network) ** 2).sum() / mask.sum()
+        else:
+            loss = (masked_td_error**2).sum() / mask.sum()
 
         # Optimise
         self.optimiser.zero_grad()
