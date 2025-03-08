@@ -51,6 +51,7 @@ class QLearner:
 
         if self.args.q_temporal_difference:
             self.cwm = self.args.cwm
+            self.n_neighbors = th.tensor(self.args.n_neighbors, dtype=th.float)
 
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):
         # Get the relevant quantities
@@ -147,9 +148,11 @@ class QLearner:
                     "nm, mij-> nij", self.cwm, td_network.permute((2, 0, 1))
                 )
                 td_network = td_network.permute((1, 2, 0))  # [b, t, n]
-                td_network = (
-                    td_network * self.n_agents - masked_td_error.detach().clone()
+                n_neighbors = th.tile(
+                    self.n_neighbors + 1,
+                    (batch.batch_size, batch.max_seq_length - 1, 1),
                 )
+                td_network = td_network * n_neighbors - masked_td_error.detach().clone()
             # Normal L2 loss, take mean over actual data
             loss = ((masked_td_error + td_network) ** 2).sum() / mask.sum()
         else:

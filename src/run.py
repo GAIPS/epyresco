@@ -1,3 +1,4 @@
+from collections import Counter
 import datetime
 import os
 import pprint
@@ -16,6 +17,7 @@ from components.consensus import consensus_from_neighbors
 from utils.general_reward_support import test_alg_config_supports_reward
 from utils.logging import Logger
 from utils.timehelper import time_left, time_str
+from IPython.core.debugger import set_trace
 
 
 def run(_run, _config, _log):
@@ -139,9 +141,14 @@ def run_sequential(args, logger):
     # uses consensus
     if args.q_temporal_difference:
         if "neighbors" in env_info and "all_ts_ids" in env_info:
+            # compute consensus weight matrices
             args.cwm = consensus_from_neighbors(
                 env_info["all_ts_ids"], env_info["neighbors"]
             )
+            # compute the number of neighbor
+            src, dst = zip(*list(env_info["neighbors"]))
+            counter = Counter(src + dst)
+            args.n_neighbors = [counter[ts] for ts in env_info["all_ts_ids"]]
     # Learner
     learner = le_REGISTRY[args.learner](mac, buffer.scheme, logger, args)
 

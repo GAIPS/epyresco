@@ -10,8 +10,8 @@ lr: 0.001
 
 runner: "episode"
 
-# buffer_size: 5000
-buffer_size: 50
+buffer_size: 5000
+# buffer_size: 50
 
 # update the target network every {} episodes
 # target_update_interval_or_tau: 10
