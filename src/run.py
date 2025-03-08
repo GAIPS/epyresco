@@ -17,7 +17,6 @@ from components.consensus import consensus_from_neighbors
 from utils.general_reward_support import test_alg_config_supports_reward
 from utils.logging import Logger
 from utils.timehelper import time_left, time_str
-from IPython.core.debugger import set_trace
 
 
 def run(_run, _config, _log):
@@ -143,12 +142,22 @@ def run_sequential(args, logger):
         if "neighbors" in env_info and "all_ts_ids" in env_info:
             # compute consensus weight matrices
             args.cwm = consensus_from_neighbors(
-                env_info["all_ts_ids"], env_info["neighbors"]
+                env_info["all_ts_ids"],
+                env_info["neighbors"],
+                max_distance=args.max_distance,
             )
             # compute the number of neighbor
-            src, dst = zip(*list(env_info["neighbors"]))
-            counter = Counter(src + dst)
-            args.n_neighbors = [counter[ts] for ts in env_info["all_ts_ids"]]
+            edges = [
+                edge
+                for edge, hops in env_info["neighbors"].items()
+                if hops <= args.max_distance
+            ]
+            if len(edges) > 0:
+                src, dst = zip(*edges)
+                counter = Counter(src + dst)
+                args.n_neighbors = [counter[ts] for ts in env_info["all_ts_ids"]]
+            else:
+                args.n_neighbors = [0] * args.n_agents
     # Learner
     learner = le_REGISTRY[args.learner](mac, buffer.scheme, logger, args)
 

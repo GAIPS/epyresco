@@ -19,6 +19,7 @@ target_update_interval_or_tau: 0.01
 
 # Consensus parameters
 q_temporal_difference: True
+max_distance: 1
 
 obs_agent_id: False
 obs_last_action: False
