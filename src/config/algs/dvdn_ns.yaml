@@ -19,8 +19,9 @@ batch_size: 64
 target_update_interval_or_tau: 0.01
 
 # Consensus parameters
+target_consensus: True
 q_temporal_difference: True
-max_distance: 2
+max_distance: 4
 
 obs_agent_id: False
 obs_last_action: False
