@@ -131,6 +131,13 @@ class QLearner:
             self.ret_ms.update(targets)
             targets = (targets - self.ret_ms.mean) / th.sqrt(self.ret_ms.var)
 
+        if self.args.target_consensus:
+            with th.no_grad():
+                # Perform consensus
+                targets = targets.permute((2, 0, 1))  # [n, b, t]
+                targets = th.einsum("nm, mij-> nij", self.cwm, targets)
+                targets = targets.permute((1, 2, 0))  # [b, t, n]
+
         # Td-error
         td_error = chosen_action_qvals - targets.detach()
 

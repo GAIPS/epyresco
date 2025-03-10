@@ -41,7 +41,8 @@ add_value_last_step: True
 
 # --- Consensus parameters ---
 debug: False # Whether to generate a fully connected graph.
-q_temporal_difference: False  # Do not perform consensus (e.g iql_ns).
+q_temporal_difference: False  # Do not perform consensus on temporal difference.
+target_consensus: False # Do not perform  consensus on target
 distance: hops  # Types of distance "hops" or "cost" 
 max_distance: 0 # Computes the maximum distance for consensus. 
 
