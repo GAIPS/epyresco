@@ -144,13 +144,24 @@ def run_sequential(args, logger):
             args.cwm = consensus_from_neighbors(
                 env_info["all_ts_ids"],
                 env_info["neighbors"],
-                max_distance=args.max_distance,
+                max_distance=20,
+                filter_agents=args.filter_agents,
             )
+            if len(args.filter_agents) > 0:
+                filter_agents_ids = [
+                    ts
+                    for i, ts in enumerate(env_info["all_ts_ids"])
+                    if i in args.filter_agents
+                ]
+            else:
+                filter_agents_ids = env_info["all_ts_ids"]
             # compute the number of neighbor
             edges = [
                 edge
-                for edge, hops in env_info["neighbors"].items()
-                if hops <= args.max_distance
+                # for edge, hops in env_info["neighbors"].items()
+                # if hops <= args.max_distance
+                for edge, _ in env_info["neighbors"].items()
+                if set(edge).issubset(set(filter_agents_ids))
             ]
             if len(edges) > 0:
                 src, dst = zip(*edges)
