@@ -19,7 +19,7 @@ batch_size: 32
 target_update_interval_or_tau: 0.01
 
 # Consensus parameters
-target_consensus: False
+target_consensus: True
 q_temporal_difference: True
 max_distance: 4
 filter_agents: [2, 3, 4]
