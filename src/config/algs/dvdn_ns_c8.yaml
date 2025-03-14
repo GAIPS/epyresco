@@ -22,7 +22,7 @@ target_update_interval_or_tau: 0.01
 target_consensus: True
 q_temporal_difference: True
 max_distance: 4
-filter_agents: [0, 3, 4]
+filter_agents: [[0, 3, 4], [1, 7, 6]]
 
 obs_agent_id: False
 obs_last_action: False

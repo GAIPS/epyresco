@@ -166,17 +166,18 @@ def consensus_from_neighbors(
     """
     matrix = np.zeros((len(all_ts_ids), len(all_ts_ids)), dtype=np.float)
     if len(filter_agents) == 0:
-        filter_agents = [*range(len(all_ts_ids))]
+        filter_agents = [[*range(len(all_ts_ids))]]
 
-    for source, destination in neighbors:
-        if neighbors[(source, destination)] > max_distance:
-            continue
-        i = all_ts_ids.index(source)
-        j = all_ts_ids.index(destination)
-        if not (i in filter_agents and j in filter_agents):
-            continue
-        matrix[i, j] = 1
-        matrix[j, i] = 1
+    for agent_cluster in filter_agents:
+        for source, destination in neighbors:
+            if neighbors[(source, destination)] > max_distance:
+                continue
+            i = all_ts_ids.index(source)
+            j = all_ts_ids.index(destination)
+            if not (i in agent_cluster and j in agent_cluster):
+                continue
+            matrix[i, j] = 1
+            matrix[j, i] = 1
 
     cwm = metropolis_weights_matrix(matrix)
     if to_torch:
