@@ -1,0 +1,53 @@
+exclude: null
+grid-search:
+
+  "--config":
+    - "iql_ns"
+
+  lr:
+    - 0.001
+    - 0.003
+    - 0.005
+
+  standardise_rewards:
+    - True
+
+  use_rnn:
+    - False
+
+  target_update_interval_or_tau:
+    - 200
+    - 0.01
+
+  hidden_dim:
+    - 64
+    - 128
+
+  evaluation_epsilon:
+    - 0.0
+    - 0.05
+
+  epsilon_anneal_time:
+    - 180_000
+    - 230_000
+
+  t_max:
+    - 288_000
+  # test_nepisode:
+  #   - 100
+  # test_interval:
+  #   - 25000
+  # log_interval:
+  #   - 25000
+  # save_model_interval:
+  #   - 50000
+  save_model:
+    - false
+    
+grid-search-groups:
+  env0:
+    - "--env-config": "resco"
+    - env_args.key: resco_benchmark:cologne3-iql_ns-v1 
+    - env_args.time_limit: 360
+    - env_args.save_logs: False
+
