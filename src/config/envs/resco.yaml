@@ -5,6 +5,7 @@ env_args:
   time_limit: 360
   pretrained_wrapper: null
   tr: 0
+  save_logs: True
 
 test_greedy: True
 test_nepisode: 100

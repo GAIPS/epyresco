@@ -108,13 +108,18 @@ def run(ctx, config, shuffle, seeds):
 )
 @click.pass_obj
 def locally(combos, cpus):
-    configs = ["python main.py " + " ".join([c for c in combo if c.startswith("--")]) + " with " + " ".join([c for c in combo if not c.startswith("--")]) for combo in combos]
+    configs = [
+        "python main.py "
+        + " ".join([c for c in combo if c.startswith("--")])
+        + " with "
+        + " ".join([c for c in combo if not c.startswith("--")])
+        for combo in combos
+    ]
 
-    click.confirm(
-        f"There are {click.style(str(len(combos)), fg='red')} combinations of configurations. Up to {cpus} will run in parallel. Continue?",
-        abort=True,
-    )
-
+    # click.confirm(
+    #     f"There are {click.style(str(len(combos)), fg='red')} combinations of configurations. Up to {cpus} will run in parallel. Continue?",
+    #     abort=True,
+    # )
 
     pool = multiprocessing.Pool(processes=cpus)
     print(pool.map(work, configs))
@@ -122,7 +127,8 @@ def locally(combos, cpus):
 
 @run.command()
 @click.argument(
-    "index", type=int,
+    "index",
+    type=int,
 )
 @click.pass_obj
 def single(combos, index):
@@ -131,7 +137,12 @@ def single(combos, index):
     """
 
     config = combos[index]
-    cmd = "python main.py " + " ".join([c for c in config if c.startswith("--")]) + " with " + " ".join([c for c in config if not c.startswith("--")])
+    cmd = (
+        "python main.py "
+        + " ".join([c for c in config if c.startswith("--")])
+        + " with "
+        + " ".join([c for c in config if not c.startswith("--")])
+    )
     print(cmd)
     work(cmd)
 
