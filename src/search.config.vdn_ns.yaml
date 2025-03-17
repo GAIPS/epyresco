@@ -2,7 +2,7 @@ exclude: null
 grid-search:
 
   "--config":
-    - "iql_ns"
+    - "vdn_ns"
 
   lr:
     - 0.001
@@ -47,7 +47,7 @@ grid-search:
 grid-search-groups:
   env0:
     - "--env-config": "resco"
-    - env_args.key: resco_benchmark:cologne3-iql_ns-v1 
+    - env_args.key: resco_benchmark:cologne3-vdn_ns-v1 
     - env_args.time_limit: 360
     - env_args.save_logs: False
 
