@@ -49,7 +49,7 @@ class QLearner:
             rew_shape = (1,) if self.args.common_reward else (self.n_agents,)
             self.rew_ms = RunningMeanStd(shape=rew_shape, device=device)
 
-        if self.args.q_temporal_difference:
+        if self.args.q_temporal_difference or self.args.target_consensus:
             self.cwm = self.args.cwm
             self.n_neighbors = th.tensor(self.args.n_neighbors, dtype=th.float)
 
