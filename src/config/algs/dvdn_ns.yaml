@@ -4,9 +4,13 @@
 action_selector: "epsilon_greedy"
 epsilon_start: 1.0
 epsilon_finish: 0.05
-epsilon_anneal_time: 230_400
+epsilon_anneal_time: 230_000
 evaluation_epsilon: 0.0
+hidden_dim: 128
+hypergroup: hp_grp_45
 lr: 0.001
+# update the target network every {} episodes
+target_update_interval_or_tau: 0.01
 
 runner: "episode"
 
@@ -14,13 +18,10 @@ buffer_size: 5000
 batch_size: 32
 # buffer_size: 50
 
-# update the target network every {} episodes
-# target_update_interval_or_tau: 10
-target_update_interval_or_tau: 0.01
 
 # Consensus parameters
-target_consensus: False
-q_temporal_difference: True
+target_consensus: True
+q_temporal_difference: False
 max_distance: 100
 filter_agents: []
 
