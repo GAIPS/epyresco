@@ -1,9 +1,9 @@
 #!/bin/bash
-#SBATCH --job-name=CologneCorridorSearchVDN
+#SBATCH --job-name=SearchVDN
 #SBATCH --output=/home/u021427/logs/RESCO/search_vdn_%A.out
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=25
+#SBATCH --cpus-per-task=45
 #SBATCH --mem=80GB
 #SBATCH --time=48:00:00
 
@@ -22,6 +22,6 @@ cd src
 
 ## Init job
 ALGO=vdn_ns
-CPUS=20
+CPUS=45
 SEEDS=3
 python search.py run --config=search.config.vdn_ns.yaml --seeds "${SEEDS}" locally --cpus "${CPUS}"
