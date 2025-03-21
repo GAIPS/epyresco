@@ -1,9 +1,9 @@
 #!/bin/bash
-#SBATCH --job-name=CologneCorridorSearchIQL
+#SBATCH --job-name=SearchIQL
 #SBATCH --output=/home/u021427/logs/RESCO/search_iql_%A.out
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=25
+#SBATCH --cpus-per-task=45
 #SBATCH --mem=80GB
 #SBATCH --time=48:00:00
 
@@ -22,6 +22,6 @@ cd src
 
 ## Init job
 ALGO=iql_ns
-CPUS=20
+CPUS=45
 SEEDS=3
 python search.py run --config=search.config.iql_ns.yaml --seeds "${SEEDS}" locally --cpus "${CPUS}"
