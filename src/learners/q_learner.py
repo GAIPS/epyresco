@@ -49,8 +49,8 @@ class QLearner:
             rew_shape = (1,) if self.args.common_reward else (self.n_agents,)
             self.rew_ms = RunningMeanStd(shape=rew_shape, device=device)
 
-        if self.args.q_temporal_difference or self.args.target_consensus:
-            self.cwm = self.args.cwm
+        if self.args.q_temporal_difference or self.args.q_target_consensus:
+            self.consensus_matrices = args.consensus_matrices
             self.n_neighbors = th.tensor(self.args.n_neighbors, dtype=th.float)
 
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):
@@ -131,11 +131,14 @@ class QLearner:
             self.ret_ms.update(targets)
             targets = (targets - self.ret_ms.mean) / th.sqrt(self.ret_ms.var)
 
-        if self.args.target_consensus:
+        if self.args.q_target_consensus:
             with th.no_grad():
                 # Perform consensus
                 targets = targets.permute((2, 0, 1))  # [n, b, t]
-                targets = th.einsum("nm, mij-> nij", self.cwm, targets)
+                for _ in range(self.args.n_consensus_steps):
+                    ind = np.random.choice(len(self.consensus_matrices))
+                    cm = self.consensus_matrices[ind]
+                    targets = th.einsum("nm, mij-> nij", cm, targets)
                 targets = targets.permute((1, 2, 0))  # [b, t, n]
 
         # Td-error
@@ -150,16 +153,28 @@ class QLearner:
         td_network = th.zeros_like(masked_td_error).requires_grad_(False)
         if self.args.q_temporal_difference:
             with th.no_grad():
-                td_network = masked_td_error.detach().clone()
-                td_network = th.einsum(  # [n, b, t]
-                    "nm, mij-> nij", self.cwm, td_network.permute((2, 0, 1))
-                )
+                td_network = masked_td_error.detach().clone().permute((2, 0, 1))
+
+                for _ in range(self.args.n_consensus_steps):
+                    ind = np.random.choice(len(self.consensus_matrices))
+                    cm = self.consensus_matrices[ind]
+                    td_network = th.einsum(  # [n, b, t]
+                        "nm, mij-> nij", cm, td_network
+                    )
                 td_network = td_network.permute((1, 2, 0))  # [b, t, n]
-                n_neighbors = th.tile(
-                    self.n_neighbors + 1,
-                    (batch.batch_size, batch.max_seq_length - 1, 1),
-                )
-                td_network = td_network * n_neighbors - masked_td_error.detach().clone()
+                if len(self.consensus_matrices) == 1:
+                    n_neighbors = th.tile(
+                        self.n_neighbors + 1,
+                        (batch.batch_size, batch.max_seq_length - 1, 1),
+                    )
+                    td_network = (
+                        td_network * n_neighbors - masked_td_error.detach().clone()
+                    )
+                else:
+                    td_network = (
+                        td_network * self.n_agents - masked_td_error.detach().clone()
+                    )
+
             # Normal L2 loss, take mean over actual data
             loss = ((masked_td_error + td_network) ** 2).sum() / mask.sum()
         else:

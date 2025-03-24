@@ -22,15 +22,14 @@ Reference
 import copy
 import itertools as it
 import operator as op
+from typing import List, Dict, Tuple, Union
 
 import networkx as nx
-from networkx.readwrite.json_graph import adjacency
 import numpy as np
 import torch as th
 import matplotlib.pyplot as plt
 import scipy.sparse as sp
 
-from typing import List
 
 Array = np.ndarray
 
@@ -44,19 +43,14 @@ def consensus_matrices(
 
     Parameters
     ----------
-    * n_nodes: int
-        A two dimension array representing an adjacency matrix.
-
-    * cm_n_edges: int
-        Number of edges
-
-    * cm_type: str = 'metropolis'
-        A string with the algorithm for consensus.
+    * n_nodes: Number of vertices.
+    * cm_n_edges: Number of edges.
+    * cm_type: Algorithm for consensus choice between
+        ('metropolis', 'laplacian', 'normalized_laplacian').
 
     Returns
     -------
-    * cwms: List[Array]
-        A list containing consensus weights matrices
+    * cwms: Consensus weights matrices.
     """
     if n_nodes == 1:
         raise ValueError("%s invalid" % str(n_nodes))
@@ -73,7 +67,7 @@ def consensus_matrices(
     return cwms
 
 
-def _adjacency_matrices(n_nodes: int, n_edges: int) -> Array:
+def _adjacency_matrices(n_nodes: int, n_edges: int) -> List[Array]:
     """Produce all adjacency matrices with n_edges
 
                              A[i, i] = 0
@@ -82,15 +76,14 @@ def _adjacency_matrices(n_nodes: int, n_edges: int) -> Array:
                             \
                             A[i, j] = 0 otherwise
 
-    Parameters
-    ----------
-    n_nodes: int
-    n_edges: int
+    Parameters:
+    -----------
+    * n_nodes: Number of vertices.
+    * n_edges: Number of edges.
 
-    Returns
-    -------
-    * ams: Array
-        A list of two dimension array representing an adjacency matrix.
+    Returns:
+    --------
+    * ams: A list of adjacency matrices.
     """
     if n_edges == 0:
         return [np.zeros((n_nodes, n_nodes))]
@@ -115,17 +108,13 @@ def consensus_matrices2(
 
     Parameters:
     -----------
-    nodes: default: 3
-        Number of agents.
-    cm_type: default: `metropolis`
-        Consensus matrix type either `metropolis` or `laplacian`.
-    debug: dafault: False
-        If True returns a fully connected matrix
+    * nodes: Number of agents.
+    * cm_type: Consensus matrix type either `metropolis` or `laplacian`.
+    * debug: If True returns a fully connected matrix
 
     Returns:
     --------
-    list
-        List of matrices that guarantee consensus
+    * weights_list: List of matrices that guarantee consensus
     """
 
     if cm_type not in ("metropolis", "laplacian"):
@@ -150,29 +139,44 @@ def consensus_matrices2(
     return weights_list
 
 
-def consensus_from_neighbors(all_ts_ids, neighbors, to_torch=True):
+def consensus_from_neighbors(
+    all_ts_ids: str,
+    neighbors: Dict[Tuple[str, str], int],
+    max_edges: int = -1,
+    to_torch: bool = True,
+) -> Union[List[Array], List[th.Tensor]]:
     """Returns metropolis weights from neighbors
-    Args:
-        all_ts_ids (list): list of ts ids
-        neighbors (dict): keys are tuples in which elements are from tls id,
-        to tls id. Values are costs or hops.
-        to_torch (bool): convert weights to torch.
+
+    Parameters:
+    ----------
+        * all_ts_ids: list of ts ids.
+        * neighbors: keys are tuples in which elements are from tls id. to tls
+        id. Values are costs or hops.
+        * max_edges: maximum number of edges in consensus matrices.
+        * to_torch: convert weights to torch.
 
     Returns:
-        consensus matrix (numpy.ndarray | th.tensor): a matrix with consensus weights.
+    --------
+        * consensus matrix: a list of consensus weights matrices.
     """
-    matrix = np.zeros((len(all_ts_ids), len(all_ts_ids)), dtype=np.float)
+    matrices = []
+    k_comb = max_edges if max_edges > 0 else len(neighbors)
+    for combination in it.combinations(list(neighbors.keys()), k_comb):
+        matrix = np.zeros((len(all_ts_ids), len(all_ts_ids)), dtype=np.float32)
+        for source, destination in combination:
+            i = all_ts_ids.index(source)
+            j = all_ts_ids.index(destination)
+            matrix[i, j] = 1
+            matrix[j, i] = 1
+        matrices.append(metropolis_weights_matrix(matrix))
 
-    for source, destination in neighbors:
-        i = all_ts_ids.index(source)
-        j = all_ts_ids.index(destination)
-        matrix[i, j] = 1
-        matrix[j, i] = 1
-
-    cwm = metropolis_weights_matrix(matrix)
     if to_torch:
-        cwm = th.from_numpy(cwm.astype(np.float32))
-    return cwm
+
+        def fn(x):
+            return th.from_numpy(x).type(th.float32)
+
+        matrices = [*map(fn, matrices)]
+    return matrices
 
 
 def generate_automorphisms(graph_list):

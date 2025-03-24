@@ -141,8 +141,8 @@ def run_sequential(args, logger):
     if args.q_temporal_difference or args.target_consensus:
         if "neighbors" in env_info and "all_ts_ids" in env_info:
             # compute consensus weight matrices
-            args.cwm = consensus_from_neighbors(
-                env_info["all_ts_ids"], env_info["neighbors"]
+            args.consensus_matrices = consensus_from_neighbors(
+                env_info["all_ts_ids"], env_info["neighbors"], args.max_edges
             )
             # compute the number of neighbor
             src, dst = zip(*list(env_info["neighbors"]))
