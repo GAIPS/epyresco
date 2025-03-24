@@ -1,7 +1,6 @@
 import torch.nn as nn
 from modules.agents.cnn_agent import CNNAgent
 import torch as th
-from IPython.core.debugger import set_trace
 
 
 class CNNNSAgent(nn.Module):

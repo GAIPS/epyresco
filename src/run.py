@@ -17,7 +17,6 @@ from components.consensus import consensus_from_neighbors
 from utils.general_reward_support import test_alg_config_supports_reward
 from utils.logging import Logger
 from utils.timehelper import time_left, time_str
-from IPython.core.debugger import set_trace
 
 
 def run(_run, _config, _log):
@@ -236,8 +235,8 @@ def run_sequential(args, logger):
             last_time = time.time()
 
             last_test_T = runner.t_env
-            # for _ in range(n_test_runs):
-            #     runner.run(test_mode=True)
+            for _ in range(n_test_runs):
+                runner.run(test_mode=True)
 
         if args.save_model and (
             runner.t_env - model_save_time >= args.save_model_interval
