@@ -1,3 +1,4 @@
+from copy import deepcopy
 from envs import REGISTRY as env_REGISTRY
 from functools import partial
 from components.episode_buffer import EpisodeBatch
@@ -11,11 +12,22 @@ class EpisodeRunner:
         self.batch_size = self.args.batch_size_run
         assert self.batch_size == 1
 
-        self.env = env_REGISTRY[self.args.env](
+        # Follows default configuration
+        self._env_train = env_REGISTRY[self.args.env](
             **self.args.env_args,
             common_reward=self.args.common_reward,
             reward_scalarisation=self.args.reward_scalarisation,
         )
+        # Resco enviornment
+        test_env_args = deepcopy(args.env_args)
+        if "save_logs" in test_env_args:
+            test_env_args["save_logs"] = False
+        self._env_test = env_REGISTRY[self.args.env](
+            **test_env_args,
+            common_reward=self.args.common_reward,
+            reward_scalarisation=self.args.reward_scalarisation,
+        )
+        self.test_mode = False
         self.episode_limit = self.env.episode_limit
         self.t = 0
 
@@ -28,6 +40,10 @@ class EpisodeRunner:
 
         # Log the first run
         self.log_train_stats_t = -1000000
+
+    @property
+    def env(self):
+        return self._env_test if self.test_mode else self._env_train
 
     def setup(self, scheme, groups, preprocess, mac):
         self.new_batch = partial(
@@ -56,6 +72,7 @@ class EpisodeRunner:
         self.t = 0
 
     def run(self, test_mode=False):
+        self.test_mode = test_mode
         self.reset()
 
         terminated = False
