@@ -20,9 +20,15 @@ export LIBSUMO_AS_TRACI=1
 ALGO=dvdn_ns
 MAP=cologne3
 TASK=resco_benchmark:"${MAP}"-"${ALGO}"-v1
+<<<<<<< Updated upstream
 for i in {5..9}
 do
    python src/main.py --config="${ALGO}" --env-config=resco with env_args.key="${TASK}" env_args.tr="$i" max_distance=4 --force
+=======
+for i in {0..4}
+do
+   python src/main.py --config="${ALGO}" --env-config=resco with env_args.key="${TASK}" env_args.tr="$i" --force
+>>>>>>> Stashed changes
    echo "Running with ${ALGO} and ${TASK} trace $i"
    sleep 2s
 done

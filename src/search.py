@@ -120,7 +120,6 @@ def locally(combos, cpus):
     #     f"There are {click.style(str(len(combos)), fg='red')} combinations of configurations. Up to {cpus} will run in parallel. Continue?",
     #     abort=True,
     # )
-
     pool = multiprocessing.Pool(processes=cpus)
     print(pool.map(work, configs))
 

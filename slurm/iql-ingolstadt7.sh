@@ -5,7 +5,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=8GB
-#SBATCH --time=12:00:00
+#SBATCH --time=48:00:00
 
 ## Activate pyenv
 eval "$(pyenv init -)"
@@ -20,7 +20,7 @@ export LIBSUMO_AS_TRACI=1
 ALGO=iql_ns
 MAP=ingolstadt7
 TASK=resco_benchmark:"${MAP}"-"${ALGO}"-v1
-for i in {5..9}
+for i in {0..4}
 do
    python src/main.py --config="${ALGO}" --env-config=resco with env_args.key="${TASK}" env_args.tr="$i" --force
    echo "Running with ${ALGO} and ${TASK} trace $i"
