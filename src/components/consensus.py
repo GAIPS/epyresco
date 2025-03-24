@@ -150,34 +150,24 @@ def consensus_matrices2(
     return weights_list
 
 
-def consensus_from_neighbors(
-    all_ts_ids, neighbors, to_torch=True, max_distance=20, filter_agents=[]
-):
+def consensus_from_neighbors(all_ts_ids, neighbors, to_torch=True):
     """Returns metropolis weights from neighbors
     Args:
         all_ts_ids (list): list of ts ids
         neighbors (dict): keys are tuples in which elements are from tls id,
         to tls id. Values are costs or hops.
         to_torch (bool): convert weights to torch.
-        max_distance (int): excludes larger distances.
 
     Returns:
         consensus matrix (numpy.ndarray | th.tensor): a matrix with consensus weights.
     """
     matrix = np.zeros((len(all_ts_ids), len(all_ts_ids)), dtype=np.float)
-    if len(filter_agents) == 0:
-        filter_agents = [[*range(len(all_ts_ids))]]
 
-    for agent_cluster in filter_agents:
-        for source, destination in neighbors:
-            if neighbors[(source, destination)] > max_distance:
-                continue
-            i = all_ts_ids.index(source)
-            j = all_ts_ids.index(destination)
-            if not (i in agent_cluster and j in agent_cluster):
-                continue
-            matrix[i, j] = 1
-            matrix[j, i] = 1
+    for source, destination in neighbors:
+        i = all_ts_ids.index(source)
+        j = all_ts_ids.index(destination)
+        matrix[i, j] = 1
+        matrix[j, i] = 1
 
     cwm = metropolis_weights_matrix(matrix)
     if to_torch:

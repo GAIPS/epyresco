@@ -43,9 +43,6 @@ add_value_last_step: True
 debug: False # Whether to generate a fully connected graph.
 q_temporal_difference: False  # Do not perform consensus on temporal difference.
 target_consensus: False # Do not perform  consensus on target
-distance: hops  # Types of distance "hops" or "cost" 
-max_distance: 0 # Computes the maximum distance for consensus. 
-filter_agents: [] # Include only this agents for consensus. Default: all.
 
 # --- Agent parameters ---
 agent: "rnn" # Default rnn agent
