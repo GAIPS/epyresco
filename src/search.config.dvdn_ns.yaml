@@ -29,6 +29,10 @@ grid-search:
     - 0.05
     - 0.01
 
+  n_consensus_steps:
+    - 1
+    - 10
+
   t_max:
     - 288_000
 

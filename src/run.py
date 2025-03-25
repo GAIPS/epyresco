@@ -138,7 +138,7 @@ def run_sequential(args, logger):
     runner.setup(scheme=scheme, groups=groups, preprocess=preprocess, mac=mac)
 
     # uses consensus
-    if args.q_temporal_difference or args.target_consensus:
+    if args.q_temporal_difference or args.q_target_consensus:
         if "neighbors" in env_info and "all_ts_ids" in env_info:
             # compute consensus weight matrices
             args.consensus_matrices = consensus_from_neighbors(

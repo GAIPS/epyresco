@@ -40,9 +40,10 @@ grad_norm_clip: 10 # Reduce magnitude of gradients above this L2 norm
 add_value_last_step: True
 
 # --- Consensus parameters ---
-debug: False # Whether to generate a fully connected graph.
 q_temporal_difference: False  # Do not perform consensus on temporal difference.
-target_consensus: False # Do not perform  consensus on target
+q_target_consensus: False # Do not perform  consensus on target
+max_edges: -1 # Use all edges in network
+n_consensus_steps: 1 # Number of consensus steps
 
 # --- Agent parameters ---
 agent: "rnn" # Default rnn agent
