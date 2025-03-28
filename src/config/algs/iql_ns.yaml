@@ -3,12 +3,12 @@
 # use epsilon greedy action selector
 action_selector: "epsilon_greedy"
 epsilon_start: 1.0
-epsilon_finish: 0.05
+epsilon_finish: 0.01
 epsilon_anneal_time: 180_000
-evaluation_epsilon: 0.05
+evaluation_epsilon: 0.0
 hidden_dim: 64
-hypergroup: hp_grp_42
-lr: 0.003
+hypergroup: hp_grp_17
+lr: 0.001
 # update the target network every {} episodes
 target_update_interval_or_tau: 0.01
 
