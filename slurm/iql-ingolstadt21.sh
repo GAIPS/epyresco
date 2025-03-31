@@ -3,8 +3,8 @@
 #SBATCH --output=/home/u021427/logs/RESCO/ingolstadt_region_iql_%A.out
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
-#SBATCH --mem=24GB
+#SBATCH --cpus-per-task=10
+#SBATCH --mem=150GB
 #SBATCH --time=36:00:00
 
 ## Activate pyenv
@@ -14,15 +14,17 @@ pyenv activate RESCO
 
 
 ## Export
-export LIBSUMO_AS_TRACI=1
+unset LIBSUMO_AS_TRACI=1
+export LIBTRACI_AS_TRACI=1
+
+## Change to src
+cd src
 
 ## Init job
 ALGO=iql_ns
 MAP=ingolstadt21
+CPUS=5
+SEEDS=1
 TASK=resco_benchmark:"${MAP}"-"${ALGO}"-v1
-for i in {5..9}
-do
-   python src/main.py --config="${ALGO}" --env-config=resco with env_args.key="${TASK}" env_args.tr="$i" --force
-   echo "Running with ${ALGO} and ${TASK} trace $i"
-   sleep 2s
-done
+
+python train.py run --config=train.config.iql_ns.yaml --seeds "${SEEDS}" locally --cpus "${CPUS}"
