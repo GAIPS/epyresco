@@ -30,7 +30,6 @@ import torch as th
 import matplotlib.pyplot as plt
 import scipy.sparse as sp
 
-
 Array = np.ndarray
 
 
@@ -397,26 +396,28 @@ def _graph_to_numpy_array(graph):
     return nx.to_numpy_array(graph, nodelist=sorted(graph.nodes))
 
 
-def main(n_nodes: int = 5, target: int = 3):
+def main(target: int = 3) -> None:
     """Performs distributed averaging on a simple graph.
 
     Parameters
     ----------
-    n_nodes: int = 5
-        The side of the square matrix
-    target: int = 3
-        The integer with the average the nodes should agree on.
+    target: The integer with the average the nodes should agree on.
     """
 
     # n_edges = 2 * (n_nodes - 1)
 
     # adjacency = random_adjacency_matrix(n_nodes, n_edges)
+    n_nodes = 8
 
-    adjacency = np.zeros((4, 4), dtype=int)
-    adjacency[0, 1:3] = 1
-    adjacency[1, 0] = 1
-    adjacency[2, [0, 3]] = 1
-    adjacency[3, 2] = 1
+    adjacency = np.zeros((n_nodes, n_nodes), dtype=int)
+    adjacency[0, [3, 7]] = 1
+    adjacency[1, [5, 7]] = 1
+    adjacency[2, [6]] = 1
+    adjacency[3, [0, 4]] = 1
+    adjacency[4, [2, 3, 6]] = 1
+    adjacency[5, [1, 6]] = 1
+    adjacency[6, [4, 5]] = 1
+    adjacency[7, [0, 1]] = 1
 
     print("ADJACENCY:")
     print(adjacency)
