@@ -396,28 +396,60 @@ def _graph_to_numpy_array(graph):
     return nx.to_numpy_array(graph, nodelist=sorted(graph.nodes))
 
 
-def main(target: int = 3) -> None:
+def main(target: int = 3, resco_map: str = "cologne8") -> None:
     """Performs distributed averaging on a simple graph.
 
     Parameters
     ----------
     target: The integer with the average the nodes should agree on.
+    resco_map: Indicates a valid environment in resco. Choice ('cologne3', 'cologne8',  'ingolstaldt7', ingolstaldt21')
     """
-
+    assert resco_map in ("cologne3", "cologne8", "ingolstaldt7", "ingolstaldt21")
     # n_edges = 2 * (n_nodes - 1)
 
     # adjacency = random_adjacency_matrix(n_nodes, n_edges)
-    n_nodes = 8
+    if resco_map == "cologne8":
+        n_nodes = 8
 
-    adjacency = np.zeros((n_nodes, n_nodes), dtype=int)
-    adjacency[0, [3, 7]] = 1
-    adjacency[1, [5, 7]] = 1
-    adjacency[2, [6]] = 1
-    adjacency[3, [0, 4]] = 1
-    adjacency[4, [2, 3, 6]] = 1
-    adjacency[5, [1, 6]] = 1
-    adjacency[6, [4, 5]] = 1
-    adjacency[7, [0, 1]] = 1
+        adjacency = np.zeros((n_nodes, n_nodes), dtype=int)
+        adjacency[0, [3, 7]] = 1
+        adjacency[1, [5, 7]] = 1
+        adjacency[2, [6]] = 1
+        adjacency[3, [0, 4]] = 1
+        adjacency[4, [2, 3, 6]] = 1
+        adjacency[5, [1, 6]] = 1
+        adjacency[6, [4, 5]] = 1
+        adjacency[7, [0, 1]] = 1
+    elif resco_map == "ingolstaldt21":
+        n_nodes = 21
+
+        adjacency = np.zeros((n_nodes, n_nodes), dtype=int)
+        adjacency[0, [1, 13, 17]] = 1
+        adjacency[1, [0, 17]] = 1
+        adjacency[2, [9, 13, 14, 20]] = 1
+        adjacency[3, [6, 13, 20]] = 1
+        adjacency[4, [17, 11]] = 1
+        adjacency[5, [6, 19, 20]] = 1
+        adjacency[6, [3, 5, 8]] = 1
+
+        adjacency[7, [14, 19, 20]] = 1
+        adjacency[8, [6, 11]] = 1
+        adjacency[9, [2, 10, 13]] = 1
+        adjacency[10, [9, 16]] = 1
+        adjacency[11, [4, 8]] = 1
+        adjacency[12, [15]] = 1
+        adjacency[13, [0, 2, 3, 9, 20]] = 1
+
+        adjacency[14, [2, 7, 16]] = 1
+        adjacency[15, [12, 16]] = 1
+        adjacency[16, [10, 14, 15]] = 1
+        adjacency[17, [0, 1, 4]] = 1
+        adjacency[18, [19]] = 1
+        adjacency[19, [5, 7, 18]] = 1
+        adjacency[20, [2, 3, 5, 7, 13]] = 1
+
+    else:
+        raise NotImplemented
 
     print("ADJACENCY:")
     print(adjacency)
@@ -435,13 +467,16 @@ def main(target: int = 3) -> None:
     print(C)
 
     log = [x]
+    mse = [np.mean((x - target) ** 2)]
     n_steps = 99
     for _ in range(n_steps):
         x = C @ x
         log.append(x)
+        mse.append(np.mean((x - target) ** 2))
 
     X = np.linspace(1, n_steps + 1, n_steps + 1)
     Y = np.stack(log)
+    Z = np.stack(mse)
 
     # Beware that the graph must be fully connected
     plt.axhline(y=target, color=(0.2, 1.0, 0.2), linestyle="-")
@@ -451,6 +486,17 @@ def main(target: int = 3) -> None:
     plt.plot(X, Y)
     plt.show()
 
+    fig, ax = plt.subplots()
+    plt.suptitle("Consensus Iterations (%s, %s)" % (n_nodes, target))
+    plt.ylabel("Data")
+    plt.xlabel("Time")
+
+    ax.axhline(y=0.05, color=(0.2, 1.0, 0.2), linestyle="-")
+    ax.axvline(x=np.sum(Z > 0.05).astype(int), color=(0.2, 1.0, 0.2), linestyle="-")
+    ax.set_yscale("log")
+    ax.plot(X, Z)
+    plt.show()
+
 
 if __name__ == "__main__":
-    main()
+    main(3, "ingolstaldt21")
