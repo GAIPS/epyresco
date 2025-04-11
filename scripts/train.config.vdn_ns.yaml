@@ -4,6 +4,11 @@ grid-search:
   "--config":
     - "vdn_ns"
   
+test_interval:  
+  - 43_200
+
+t_max: 
+  - 864_000
 
 grid-search-groups:
   env0:
