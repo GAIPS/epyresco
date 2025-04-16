@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name=Arterial4x4
+#SBATCH --job-name=Arterial4x4DVD
 #SBATCH --output=/home/u021427/logs/RESCO/arterial_4x4_dvdn_%A.out
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=8GB
-#SBATCH --time=12:00:00
+#SBATCH --mem=16GB
+#SBATCH --time=24:00:00
 
 ## Activate pyenv
 eval "$(pyenv init -)"

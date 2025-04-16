@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name=Grid4x4
-#SBATCH --output=/home/u021427/logs/RESCO/arterial_4x4_dvdn_%A.out
+#SBATCH --job-name=Grid4x4DVDN
+#SBATCH --output=/home/u021427/logs/RESCO/grid_4x4_dvdn_%A.out
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=8GB
-#SBATCH --time=12:00:00
+#SBATCH --mem=30GB
+#SBATCH --time=48:00:00
 
 ## Activate pyenv
 eval "$(pyenv init -)"
@@ -18,7 +18,7 @@ export LIBSUMO_AS_TRACI=1
 
 ## Init job
 ALGO=dvdn_ns
-MAP=arterial4x4
+MAP=grid4x4
 TASK=resco_benchmark:"${MAP}"-"${ALGO}"-v1
 for i in {0..4}
 do

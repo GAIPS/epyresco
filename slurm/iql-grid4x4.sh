@@ -3,8 +3,8 @@
 #SBATCH --output=/home/u021427/logs/RESCO/grid4x4_iql_%A.out
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=2
-#SBATCH --mem=8GB
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=30GB
 #SBATCH --time=48:00:00
 
 ## Activate pyenv
