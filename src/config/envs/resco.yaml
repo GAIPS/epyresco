@@ -5,13 +5,13 @@ env_args:
   time_limit: 360
   pretrained_wrapper: null
   tr: 0
-  save_logs: True
+  save_logs: False
 
 test_greedy: True
 test_nepisode: 10
-test_interval:  43_200
+test_interval:  14_400
 log_interval: 3600
 runner_log_interval: 3600
 learner_log_interval: 3600
-t_max: 864_000
+t_max: 288_000
 
