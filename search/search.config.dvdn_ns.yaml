@@ -9,6 +9,12 @@ grid-search:
     - 0.003
     - 0.005
 
+  common_reward:
+    - True
+
+  q_target_consensus:
+    - False
+
   target_update_interval_or_tau:
     - 20
     - 0.01
@@ -31,7 +37,7 @@ grid-search:
 
   n_consensus_steps:
     - 1
-    - 10
+    - 30
 
   t_max:
     - 288_000
