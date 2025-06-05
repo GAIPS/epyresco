@@ -27,11 +27,14 @@ six==1.11.0
 sk-video==1.1.10
 snakeviz
 tensorboard-logger
-torch
-torchvision
-torch_scatter
+# torch
+# torchvision
+# torch_scatter
 tornado==5.1.1
 urllib3==1.23
 websocket-client==0.53.0
 whichcraft==0.5.2
 wrapt==1.10.11
+importlib-metadata==4.13.0
+networkx
+git+https://github.com/oxwhirl/smac.git
