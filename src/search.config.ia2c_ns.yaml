@@ -1,0 +1,44 @@
+exclude: null
+grid-search:
+
+  "--config":
+    - "ia2c_ns"
+
+  lr:
+    - 0.001
+    - 0.003
+    - 0.005
+
+  target_update_interval_or_tau:
+    - 200
+    - 0.01
+
+  hidden_dim:
+    - 64
+    - 128
+
+  common_reward:
+    - False
+
+  q_nstep: 
+    - 5 
+    - 10
+
+  entropy_coef: 
+    - 0.001
+    - 0.005
+    - 0.01
+
+  t_max:
+    - 2_880_000
+
+  save_model:
+    - false
+    
+grid-search-groups:
+  env0:
+    - "--env-config": "resco"
+    - env_args.key: resco_benchmark:cologne8-ia2c_ns-v1 
+    - env_args.time_limit: 360
+    - env_args.save_logs: False
+
