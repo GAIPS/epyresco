@@ -1,7 +1,6 @@
 import torch as th
 import torch.nn as nn
 import torch.nn.functional as F
-from IPython.core.debugger import set_trace
 
 
 class CentralVCritic(nn.Module):
@@ -91,4 +90,3 @@ class CentralVCritic(nn.Module):
             input_shape += scheme["actions_onehot"]["vshape"][0] * self.n_agents
         input_shape += self.n_agents
         return input_shape
-
