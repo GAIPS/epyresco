@@ -7,7 +7,6 @@ import numpy as np
 from smac.env import MultiAgentEnv
 
 from .wrappers import TimeLimit, FlattenObservation
-import pretrained
 
 
 class GymmaWrapper(MultiAgentEnv):
@@ -27,7 +26,7 @@ class GymmaWrapper(MultiAgentEnv):
         self._env = FlattenObservation(self._env)
 
         if pretrained_wrapper:
-            self._env = getattr(pretrained, pretrained_wrapper)(self._env)
+            raise KeyError("PretrainedWrappers are disabled for this release.")
 
         self.n_agents = self._env.n_agents
         self._obs = None

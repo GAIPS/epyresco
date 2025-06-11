@@ -7,7 +7,6 @@ import numpy as np
 from smac.env import MultiAgentEnv
 
 from .wrappers import TimeLimit, FlattenObservation
-import pretrained
 from functools import partial
 
 
@@ -24,8 +23,8 @@ class RescoWrapper(MultiAgentEnv):
         self,
         key,
         time_limit,
-        pretrained_wrapper,
         seed,
+        pretrained_wrapper,
         common_reward,
         reward_scalarisation,
         **kwargs,
