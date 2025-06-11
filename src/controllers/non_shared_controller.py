@@ -1,7 +1,6 @@
 from modules.agents import REGISTRY as agent_REGISTRY
 from components.action_selectors import REGISTRY as action_REGISTRY
 import torch as th
-from IPython.core.debugger import set_trace
 
 
 class NonSharedMAC:

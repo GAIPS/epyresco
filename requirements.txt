@@ -37,4 +37,3 @@ whichcraft==0.5.2
 wrapt==1.10.11
 importlib-metadata==4.13.0
 networkx
-git+https://github.com/oxwhirl/smac.git

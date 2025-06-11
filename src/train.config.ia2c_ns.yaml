@@ -2,7 +2,7 @@ exclude: null
 grid-search:
 
   "--config":
-    - "centralV"
+    - "ia2c_ns"
   
 test_interval:  
   - 144_000
@@ -13,26 +13,26 @@ t_max:
 grid-search-groups:
   env0:
     - "--env-config": "resco"
-    - env_args.key: resco_benchmark:cologne3-centralV-v1 
+    - env_args.key: resco_benchmark:cologne3-ia2c_ns-v1 
     - env_args.time_limit: 360
     - env_args.tr: 0
   env1:
     - "--env-config": "resco"
-    - env_args.key: resco_benchmark:cologne3-centralV-v1 
+    - env_args.key: resco_benchmark:cologne3-ia2c_ns-v1 
     - env_args.time_limit: 360
     - env_args.tr: 1
   env2:
     - "--env-config": "resco"
-    - env_args.key: resco_benchmark:cologne3-centralV-v1 
+    - env_args.key: resco_benchmark:cologne3-ia2c_ns-v1 
     - env_args.time_limit: 360
     - env_args.tr: 2
   env3:
     - "--env-config": "resco"
-    - env_args.key: resco_benchmark:cologne3-centralV-v1 
+    - env_args.key: resco_benchmark:cologne3-ia2c_ns-v1 
     - env_args.time_limit: 360
     - env_args.tr: 3
   env4:
     - "--env-config": "resco"
-    - env_args.key: resco_benchmark:cologne3-centralV-v1 
+    - env_args.key: resco_benchmark:cologne3-ia2c_ns-v1 
     - env_args.time_limit: 360
     - env_args.tr: 4
