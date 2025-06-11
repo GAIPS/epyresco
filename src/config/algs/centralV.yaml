@@ -1,5 +1,4 @@
-# --- COMA specific parameters ---
-
+# --- CV specific parameters ---
 action_selector: "soft_policies"
 mask_before_softmax: True
 
@@ -9,10 +8,14 @@ buffer_size: 10
 batch_size_run: 10
 batch_size: 10
 
-# update the target network every {} training steps
-target_update_interval_or_tau: 200
 
-lr: 0.0003
+common_reward: True
+entropy_coef: 0.001
+hidden_dim: 64
+hypergroup: hp_grp_12
+lr: 0.001
+q_nstep: 5
+target_update_interval_or_tau: 0.01
 
 obs_agent_id: False
 obs_last_action: False
@@ -22,11 +25,9 @@ mac: "non_shared_mac"
 agent: "cnn_ns"
 agent_output_type: "pi_logits"
 learner: "actor_critic_learner"
-entropy_coef: 0.01
 use_rnn: False
 standardise_returns: False
 standardise_rewards: True
-q_nstep: 5 # 1 corresponds to normal r + gammaV
 critic_type: "cv_critic"
 
 name: "centralV"
