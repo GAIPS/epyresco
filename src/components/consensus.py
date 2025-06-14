@@ -141,7 +141,7 @@ def consensus_matrices2(
 def consensus_from_neighbors(
     all_ts_ids: str,
     neighbors: Dict[Tuple[str, str], int],
-    max_edges: int = -1,
+    max_edges: Union[float, int] = -1,
     to_torch: bool = True,
 ) -> Union[List[Array], List[th.Tensor]]:
     """Returns metropolis weights from neighbors
@@ -151,7 +151,9 @@ def consensus_from_neighbors(
         * all_ts_ids: list of ts ids.
         * neighbors: keys are tuples in which elements are from tls id. to tls
         id. Values are costs or hops.
-        * max_edges: maximum number of edges in consensus matrices.
+        * max_edges: maximum number of edges in consensus matrices expressed as
+        a fraction of the total of neighbors or as the absolute number of
+        neighbors. Use -1 to use all edges.
         * to_torch: convert weights to torch.
 
     Returns:
@@ -159,6 +161,10 @@ def consensus_from_neighbors(
         * consensus matrix: a list of consensus weights matrices.
     """
     matrices = []
+    # Converts fractional format to absolute format
+    if max_edges > 0 and max_edges < 1:
+        max_edges = max(round(max_edges * len(neighbors)), 1)
+
     k_comb = max_edges if max_edges > 0 else len(neighbors)
     for combination in it.combinations(list(neighbors.keys()), k_comb):
         matrix = np.zeros((len(all_ts_ids), len(all_ts_ids)), dtype=np.float32)
