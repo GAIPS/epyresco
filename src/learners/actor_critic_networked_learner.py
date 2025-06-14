@@ -1,4 +1,6 @@
 import copy
+from operator import itemgetter
+from functools import partial
 
 import numpy as np
 import torch as th
@@ -6,12 +8,9 @@ from torch.optim import Adam
 
 from components.episode_buffer import EpisodeBatch
 from components.standarize_stream import RunningMeanStd
-from modules.critics import REGISTRY as critic_resigtry
+from modules.critics import REGISTRY as critic_registry
 
-from components.consensus import consensus_matrices
-
-
-class ActorCriticLearner:
+class ActorCriticNetworkedLearner:
     def __init__(self, mac, scheme, logger, args):
         self.args = args
         self.n_agents = args.n_agents
@@ -22,7 +21,7 @@ class ActorCriticLearner:
         self.agent_params = list(mac.parameters())
         self.agent_optimiser = Adam(params=self.agent_params, lr=args.lr)
 
-        self.critic = critic_resigtry[args.critic_type](scheme, args)
+        self.critic = critic_registry[args.critic_type](scheme, args)
         self.target_critic = copy.deepcopy(self.critic)
 
         self.critic_params = list(self.critic.parameters())
@@ -44,10 +43,9 @@ class ActorCriticLearner:
         def fn(x):
             return th.from_numpy(x.astype(np.float32))
 
-        n_edges = self.args.networked_edges
-        self.cwms = [*map(fn, consensus_matrices(self.n_agents, n_edges))]
-
-        self.consensus_rounds = self.args.networked_rounds
+        self.consensus_matrices = args.consensus_matrices
+        self.consensus_parameter_names = self._get_critic_parameter_names()
+        self.consensus_rounds = self.args.n_consensus_steps
 
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):
         # Get the relevant quantities
@@ -156,45 +154,47 @@ class ActorCriticLearner:
             )
             self.log_stats_t = t_env
 
-            # consensus evaluations
-            def fn(x):
-                return th.from_numpy(x.astype(np.float32))
-
-            n_edges = self.args.networked_edges
-            self.cwms = [*map(fn, consensus_matrices(self.n_agents, n_edges))]
-
     def train_critic_sequential(self, critic, target_critic, batch, rewards, mask):
         # Optimise critic
         with th.no_grad():
-            target_vals = target_critic(batch)
+            # Get embeddings from network
+            embeddings = critic.get_embeddings(batch)
+
+            stacked_weights = self._get_critic_parameters(critic.critics)
+
+            consensus_parameters_step = partial(
+                self._consensus_step_parameters, stacked_weights
+            )
+
+            # [b, t, n, e] -> [n, e, b, t]
+            embeddings = embeddings.permute((2, 3, 0, 1))
+            # Grab the hidden state from GRU
+            for cwm in self._get_consensus_matrices():
+                # Consensus on the embeddings.
+                embeddings = th.einsum("nm, mijk-> nijk", cwm, embeddings)
+
+                # Consensus on the parameters
+                consensus_parameters_step(cwm)
+
+            embeddings = embeddings.permute((2, 3, 0, 1))  # [b, t, n, e]
+            self._update_critic_parameters(critic, stacked_weights)
+
+            target_vals = target_critic(batch, embeddings)
             target_vals = target_vals.squeeze(3)
 
-        if self.args.standardise_returns:
-            target_vals = target_vals * th.sqrt(self.ret_ms.var) + self.ret_ms.mean
+            if self.args.standardise_returns:
+                target_vals = target_vals * th.sqrt(self.ret_ms.var) + self.ret_ms.mean
 
-        if self.args.networked:
-            # Hear communication channels for this timestep
-            indices = np.random.randint(
-                0, high=len(self.cwms), size=self.args.networked_rounds
-            )
-            consensus_matrices = [self.cwms[ind] for ind in indices]
-
-            with th.no_grad():
-                target_returns = self.nstep_returns(
-                    rewards, mask, target_vals, self.args.q_nstep
-                )  # [b, t, n]
-
-                # Perform consensus
-                target_returns = target_returns.permute((2, 0, 1))  # [n, b, t]
-                # Grab the hidden state from GRU
-                for k in range(self.args.networked_rounds):
-                    cwm = consensus_matrices[k].clone()
-                    target_returns = th.einsum("nm, mij-> nij", cwm, target_returns)
-                target_returns = target_returns.permute((1, 2, 0))  # [b, t, n]
-        else:
             target_returns = self.nstep_returns(
                 rewards, mask, target_vals, self.args.q_nstep
-            )
+            )  # [b, t, n]
+
+            # Perform consensus
+            target_returns = target_returns.permute((2, 0, 1))
+            # Grab the hidden state from GRU
+            for cwm in self._get_consensus_matrices():
+                target_returns = th.einsum("nm, mij-> nij", cwm, target_returns)
+            target_returns = target_returns.permute((1, 2, 0))  # [b, t, n]
 
         if self.args.standardise_returns:
             self.ret_ms.update(target_returns)
@@ -210,7 +210,7 @@ class ActorCriticLearner:
             "q_taken_mean": [],
         }
 
-        v = critic(batch)[:, :-1].squeeze(3)
+        v = critic(batch, embeddings)[:, :-1].squeeze(3)
         td_error = target_returns.detach() - v
         masked_td_error = td_error * mask
         loss = (masked_td_error**2).sum() / mask.sum()
@@ -251,6 +251,58 @@ class ActorCriticLearner:
                     nstep_return_t += self.args.gamma**step * rewards[:, t] * mask[:, t]
             nstep_values[:, t_start, :] = nstep_return_t
         return nstep_values
+
+    def _get_consensus_matrices(self):
+        # Hear communication channels for this timestep
+        indices = np.random.randint(0, high=len(self.consensus_matrices), size=self.consensus_rounds)
+        return [self.consensus_matrices[ind] for ind in indices]
+
+    def _get_critic_parameter_names(self):
+        # Critics parameters for consensus (minus embeddings layer)
+        # FIXME: This is sensive to critic's architecture
+        a_critic = self.critic.critics[0]
+        return [k for k, v in a_critic.named_parameters() if "rnn" in k or "fc" in k]
+
+    def _get_critic_parameters(self, critics):
+        # Collect weights
+        weights = []
+        for crit in critics:
+            weights.append({
+                k: v
+                for k, v in crit.named_parameters()
+                if k in self.consensus_parameter_names
+            })
+        # Stack weights
+        stacked_weights = {}
+        for weight_name in self.consensus_parameter_names:
+            stacked_weights[weight_name] = th.stack(
+                [*map(itemgetter(weight_name), weights)], dim=0
+            )
+        return stacked_weights
+
+    def _consensus_step_parameters(self, stacked_weights, consensus_weights):
+        for name, weight in stacked_weights.items():
+            if "weight" in name:
+                w = th.einsum("nm, mij-> nij", consensus_weights, weight)
+            elif "bias" in name:
+                w = th.einsum("nm, mi-> ni", consensus_weights, weight)
+            else:
+                raise ValueError(f"Unknwon weight type {name}")
+            stacked_weights[name] = w
+
+    def _update_critic_parameters(self, critic, stacked_weights):
+        # Unstack weights
+        weights = [{} for _ in range(self.n_agents)]
+        for name, weight in stacked_weights.items():
+            for i, w in enumerate(th.tensor_split(weight, self.n_agents, dim=0)):
+                weights[i][name] = w.squeeze(0)
+
+        # Assign weights
+        for i, crit in enumerate(critic.critics):
+            for name, param in crit.named_parameters():
+                if name not in self.consensus_parameter_names:
+                    continue
+                param.data = th.nn.parameter.Parameter(weights[i][name])
 
     def _update_targets(self):
         self.target_critic.load_state_dict(self.critic.state_dict())
