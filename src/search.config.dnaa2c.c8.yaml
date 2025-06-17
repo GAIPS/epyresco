@@ -1,0 +1,49 @@
+exclude: null
+grid-search:
+
+  "--config":
+    - "dnaa2c"
+
+  lr:
+    - 0.001
+    - 0.003
+    - 0.005
+
+  common_reward:
+    - False
+
+  q_target_consensus:
+    - True
+
+  target_update_interval_or_tau:
+    - 0.01
+
+  hidden_dim:
+    - 64
+    - 128
+
+  q_nstep: 
+    - 5
+    - 10
+
+  entropy_coef: 
+    - 0.01
+    - 0.001
+
+  n_consensus_steps:
+    - 1
+    - 30
+
+  t_max:
+    - 2_880_000
+
+  save_model:
+    - false
+    
+grid-search-groups:
+  env0:
+    - "--env-config": "resco"
+    - env_args.key: resco_benchmark:cologne8-dnaa2c-v1 
+    - env_args.time_limit: 360
+    - env_args.save_logs: False
+
