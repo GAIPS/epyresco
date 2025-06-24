@@ -7,15 +7,20 @@ buffer_size: 10
 batch_size_run: 10
 batch_size: 10
 
-hidden_dim: 128 # MPE
-lr: 0.0005 # MPE
-use_rnn: False  # MPE
-standardise_rewards: True   # MPE
-entropy_coef: 0.01   # MPE
+
+common_reward: False
+entropy_coef: 0.001   # MPE
+hidden_dim: 128
+hypergroup: hp_grp_27
+lr: 0.003
+q_nstep: 10 # 1 corresponds to normal r + gammaV
+q_target_consensus: True
+max_edges: 0.25  # relative number of edges
+n_consensus_steps: 1 # Number of consensus steps
+use_rnn: False
+standardise_rewards: True
 # update the target network every {} training steps
 target_update_interval_or_tau: 0.01 # MPE
-q_nstep: 10 # 1 corresponds to normal r + gammaV
-common_reward: False
 
 
 obs_last_action: False
@@ -30,9 +35,6 @@ standardise_returns: False
 critic_type: "bigv_critic_ns" # All weights begin at the same place.
 
 # Networked agents
-q_target_consensus: True
-max_edges: 0.5  # relative number of edges
-n_consensus_steps: 5 # Number of consensus steps
 
 name: "dnaa2c"
 t_max: 2_888_000 
