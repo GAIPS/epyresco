@@ -10,6 +10,7 @@ from components.episode_buffer import EpisodeBatch
 from components.standarize_stream import RunningMeanStd
 from modules.critics import REGISTRY as critic_registry
 
+
 class ActorCriticNetworkedLearner:
     def __init__(self, mac, scheme, logger, args):
         self.args = args
@@ -46,6 +47,7 @@ class ActorCriticNetworkedLearner:
         self.consensus_matrices = args.consensus_matrices
         self.consensus_parameter_names = self._get_critic_parameter_names()
         self.consensus_rounds = self.args.n_consensus_steps
+        self.consensus_with_embeddings = False  # BiGRU only
 
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):
         # Get the relevant quantities
@@ -157,29 +159,32 @@ class ActorCriticNetworkedLearner:
     def train_critic_sequential(self, critic, target_critic, batch, rewards, mask):
         # Optimise critic
         with th.no_grad():
-            # Get embeddings from network
-            embeddings = critic.get_embeddings(batch)
+            if self.consensus_with_embeddings:
+                # Get embeddings from network
+                embeddings = critic.get_embeddings(batch)
 
-            stacked_weights = self._get_critic_parameters(critic.critics)
+                stacked_weights = self._get_critic_parameters(critic.critics)
 
-            consensus_parameters_step = partial(
-                self._consensus_step_parameters, stacked_weights
-            )
+                consensus_parameters_step = partial(
+                    self._consensus_step_parameters, stacked_weights
+                )
 
-            # [b, t, n, e] -> [n, e, b, t]
-            embeddings = embeddings.permute((2, 3, 0, 1))
-            # Grab the hidden state from GRU
-            for cwm in self._get_consensus_matrices():
-                # Consensus on the embeddings.
-                embeddings = th.einsum("nm, mijk-> nijk", cwm, embeddings)
+                # [b, t, n, e] -> [n, e, b, t]
+                embeddings = embeddings.permute((2, 3, 0, 1))
+                # Grab the hidden state from GRU
+                for cwm in self._get_consensus_matrices():
+                    # Consensus on the embeddings.
+                    embeddings = th.einsum("nm, mijk-> nijk", cwm, embeddings)
 
-                # Consensus on the parameters
-                consensus_parameters_step(cwm)
+                    # Consensus on the parameters
+                    consensus_parameters_step(cwm)
 
-            embeddings = embeddings.permute((2, 3, 0, 1))  # [b, t, n, e]
-            self._update_critic_parameters(critic, stacked_weights)
+                embeddings = embeddings.permute((2, 3, 0, 1))  # [b, t, n, e]
+                self._update_critic_parameters(critic, stacked_weights)
 
-            target_vals = target_critic(batch, embeddings)
+                target_vals = target_critic(batch, embeddings)
+            else:
+                target_vals = target_critic(batch)
             target_vals = target_vals.squeeze(3)
 
             if self.args.standardise_returns:
@@ -209,8 +214,10 @@ class ActorCriticNetworkedLearner:
             "target_mean": [],
             "q_taken_mean": [],
         }
-
-        v = critic(batch, embeddings)[:, :-1].squeeze(3)
+        if self.consensus_with_embeddings:
+            v = critic(batch, embeddings)[:, :-1].squeeze(3)
+        else:
+            v = critic(batch)[:, :-1].squeeze(3)
         td_error = target_returns.detach() - v
         masked_td_error = td_error * mask
         loss = (masked_td_error**2).sum() / mask.sum()
@@ -254,7 +261,9 @@ class ActorCriticNetworkedLearner:
 
     def _get_consensus_matrices(self):
         # Hear communication channels for this timestep
-        indices = np.random.randint(0, high=len(self.consensus_matrices), size=self.consensus_rounds)
+        indices = np.random.randint(
+            0, high=len(self.consensus_matrices), size=self.consensus_rounds
+        )
         return [self.consensus_matrices[ind] for ind in indices]
 
     def _get_critic_parameter_names(self):
