@@ -27,7 +27,7 @@ def _filter_configs(configs, mask):
     return configs
 
 
-def _compute_combinations(config_file, shuffle, seeds):
+def _compute_combinations(config_file, shuffle, seeds=5):
     config = yaml.load(config_file, Loader=yaml.FullLoader)
     combinations = []
     for k, v in config["grid-search"].items():
@@ -54,13 +54,9 @@ def _compute_combinations(config_file, shuffle, seeds):
     configs = list(product(*combinations))
     configs = [list(_flatten_lists(c)) for c in configs]
 
-    configs = [[f"hypergroup=hp_grp_{i}"] + c for i, c in enumerate(configs)]
-
-    configs = list(product(configs, [f"seed={i}" for i in range(seeds)]))
+    configs = [[f"hypergroup=train_grp_{i}"] + c for i, c in enumerate(configs)]
+    configs = [config for config in configs for _ in range(seeds)]
     configs = [list(_flatten_lists(c)) for c in configs]
-
-    if shuffle:
-        random.Random(1337).shuffle(configs)
 
     return configs
 
@@ -88,8 +84,8 @@ def write(output):
 
 @cli.group()
 @click.option("--config", type=click.File(), default="config.yaml")
-@click.option("--shuffle/--no-shuffle", default=True)
-@click.option("--seeds", default=3, show_default=True, help="How many seeds to run")
+@click.option("--shuffle/--no-shuffle", default=False)
+@click.option("--seeds", default=5, show_default=True, help="How many seeds to run")
 @click.pass_context
 def run(ctx, config, shuffle, seeds):
     combos = _compute_combinations(config, shuffle, seeds)
@@ -116,10 +112,12 @@ def locally(combos, cpus):
         for combo in combos
     ]
 
+    # Disable confirmation for running with slurm
     # click.confirm(
     #     f"There are {click.style(str(len(combos)), fg='red')} combinations of configurations. Up to {cpus} will run in parallel. Continue?",
     #     abort=True,
     # )
+
     pool = multiprocessing.Pool(processes=cpus)
     print(pool.map(work, configs))
 
