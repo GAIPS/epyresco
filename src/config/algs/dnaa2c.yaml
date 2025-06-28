@@ -33,10 +33,5 @@ learner: "actor_critic_networked_learner"
 standardise_returns: False
 critic_type: "ac_critic_ns" # All weights begin at the same place.
 
-# Networked agents
-q_target_consensus: True
-max_edges: -1 # relative number of edges
-n_consensus_steps: 30 # Number of consensus steps
-
 name: "dnaa2c"
 t_max: 2_888_000 
