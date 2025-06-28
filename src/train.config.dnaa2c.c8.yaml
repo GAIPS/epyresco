@@ -4,6 +4,10 @@ grid-search:
   "--config":
     - "dnaa2c"
   
+
+n_consensus_steps:  
+  - 1
+
 test_interval:  
   - 144_000
 
