@@ -7,14 +7,6 @@ buffer_size: 10
 batch_size_run: 10
 batch_size: 10
 
-<<<<<<< Updated upstream
-hidden_dim: 128 # MPE
-lr: 0.0005 # MPE
-use_rnn: False  # MPE
-standardise_rewards: True   # MPE
-entropy_coef: 0.01   # MPE
-=======
-
 common_reward: False
 entropy_coef: 0.01   # MPE
 hidden_dim: 128
@@ -26,7 +18,6 @@ max_edges: -1  # relative number of edges
 n_consensus_steps: 1 # Number of consensus steps
 use_rnn: False
 standardise_rewards: True
->>>>>>> Stashed changes
 # update the target network every {} training steps
 target_update_interval_or_tau: 0.01 # MPE
 q_nstep: 10 # 1 corresponds to normal r + gammaV
@@ -43,11 +34,6 @@ agent_output_type: "pi_logits"
 learner: "actor_critic_networked_learner"
 standardise_returns: False
 critic_type: "ac_critic_ns" # All weights begin at the same place.
-
-# Networked agents
-q_target_consensus: True
-max_edges: -1 # relative number of edges
-n_consensus_steps: 30 # Number of consensus steps
 
 name: "dnaa2c"
 t_max: 2_888_000 
