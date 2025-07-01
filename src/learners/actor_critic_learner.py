@@ -1,14 +1,11 @@
 import copy
 
-import numpy as np
 import torch as th
 from torch.optim import Adam
 
 from components.episode_buffer import EpisodeBatch
 from components.standarize_stream import RunningMeanStd
 from modules.critics import REGISTRY as critic_resigtry
-
-from components.consensus import consensus_matrices
 
 
 class ActorCriticLearner:
@@ -38,16 +35,6 @@ class ActorCriticLearner:
         if self.args.standardise_rewards:
             rew_shape = (1,) if self.args.common_reward else (self.n_agents,)
             self.rew_ms = RunningMeanStd(shape=rew_shape, device=device)
-
-        # consensus evaluations
-        # TODO: allow only neighbors to be connected.
-        def fn(x):
-            return th.from_numpy(x.astype(np.float32))
-
-        n_edges = self.args.networked_edges
-        self.cwms = [*map(fn, consensus_matrices(self.n_agents, n_edges))]
-
-        self.consensus_rounds = self.args.networked_rounds
 
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):
         # Get the relevant quantities
@@ -156,13 +143,6 @@ class ActorCriticLearner:
             )
             self.log_stats_t = t_env
 
-            # consensus evaluations
-            def fn(x):
-                return th.from_numpy(x.astype(np.float32))
-
-            n_edges = self.args.networked_edges
-            self.cwms = [*map(fn, consensus_matrices(self.n_agents, n_edges))]
-
     def train_critic_sequential(self, critic, target_critic, batch, rewards, mask):
         # Optimise critic
         with th.no_grad():
@@ -172,29 +152,9 @@ class ActorCriticLearner:
         if self.args.standardise_returns:
             target_vals = target_vals * th.sqrt(self.ret_ms.var) + self.ret_ms.mean
 
-        if self.args.networked:
-            # Hear communication channels for this timestep
-            indices = np.random.randint(
-                0, high=len(self.cwms), size=self.args.networked_rounds
-            )
-            consensus_matrices = [self.cwms[ind] for ind in indices]
-
-            with th.no_grad():
-                target_returns = self.nstep_returns(
-                    rewards, mask, target_vals, self.args.q_nstep
-                )  # [b, t, n]
-
-                # Perform consensus
-                target_returns = target_returns.permute((2, 0, 1))  # [n, b, t]
-                # Grab the hidden state from GRU
-                for k in range(self.args.networked_rounds):
-                    cwm = consensus_matrices[k].clone()
-                    target_returns = th.einsum("nm, mij-> nij", cwm, target_returns)
-                target_returns = target_returns.permute((1, 2, 0))  # [b, t, n]
-        else:
-            target_returns = self.nstep_returns(
-                rewards, mask, target_vals, self.args.q_nstep
-            )
+        target_returns = self.nstep_returns(
+            rewards, mask, target_vals, self.args.q_nstep
+        )
 
         if self.args.standardise_returns:
             self.ret_ms.update(target_returns)
