@@ -116,13 +116,13 @@ if __name__ == "__main__":
             map_name = param.split("=")[1]
 
     # Save to disk by default for sacred
-    # logger.info("Saving to FileStorageObserver in results/sacred.")
-    # file_obs_path = os.path.join(
-    #     results_path, f"sacred/{config_dict['name']}/{map_name}"
-    # )
+    logger.info("Saving to FileStorageObserver in results/sacred.")
+    file_obs_path = os.path.join(
+        results_path, f"sacred/{config_dict['name']}/{map_name}"
+    )
 
-    ex.observers.append(MongoObserver(db_name="RESCO"))  # url='172.31.5.187:27017'))
-    # ex.observers.append(FileStorageObserver.create(file_obs_path))
-    ex.observers.append(MongoObserver())
+    # ex.observers.append(MongoObserver(db_name="RESCO"))  # url='172.31.5.187:27017'))
+    ex.observers.append(FileStorageObserver.create(file_obs_path))
+    # ex.observers.append(MongoObserver())
 
     ex.run_commandline(params)
