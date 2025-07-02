@@ -20,8 +20,8 @@ class EpisodeRunner:
         )
         # Resco enviornment
         test_env_args = deepcopy(args.env_args)
-        if "save_logs" in test_env_args:
-            test_env_args["save_logs"] = False
+        # if "save_logs" in test_env_args:
+        #     test_env_args["save_logs"] = False
         self._env_test = env_REGISTRY[self.args.env](
             **test_env_args,
             common_reward=self.args.common_reward,

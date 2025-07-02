@@ -1,5 +1,6 @@
 from collections import Counter
 import datetime
+from operator import itemgetter
 import os
 import pprint
 import time
@@ -7,6 +8,10 @@ import threading
 import torch as th
 from types import SimpleNamespace as SN
 from os.path import dirname, abspath
+from pathlib import Path
+import json
+import numpy as np
+
 
 from learners import REGISTRY as le_REGISTRY
 from runners import REGISTRY as r_REGISTRY
@@ -17,6 +22,42 @@ from components.consensus import consensus_from_neighbors
 from utils.general_reward_support import test_alg_config_supports_reward
 from utils.logging import Logger
 from utils.timehelper import time_left, time_str
+
+
+def sort_key(x: Path) -> int:
+    print(int(x.parent.stem))
+    return int(x.parent.stem)  # experiment id
+
+
+def get_seed(args: SN) -> int:
+    model = Path(args.checkpoint_path).stem
+    seed = model.split("seed")[-1].split("_")[0]
+    return int(seed)
+
+
+def load_max_return_timestep(args):
+    sacred_path = Path("results/sacred") / args.name / args.env_args["key"]
+    ref_seed = get_seed(args)
+    if not sacred_path.exists():
+        return -1
+
+    for config_file in sorted(sacred_path.rglob("config.json"), key=sort_key):
+        info_file = config_file.parent / "info.json"
+        if not info_file.exists():  # This is a new folder without results
+            continue
+        with config_file.open("r") as f:
+            test_seed = json.load(f)["seed"]
+        if not ref_seed == test_seed:
+            continue
+        with info_file.open("r") as f:
+            info = json.load(f)
+        test_return_mean = info.get("test_return_mean", "test_total_return_mean")
+        test_return_mean_T = info.get("test_return_mean_T", "test_total_return_mean_T")
+
+        test_return = [*map(itemgetter("value"), test_return_mean)]
+        max_return_idx = np.argmax(test_return)
+        return test_return_mean_T[max_return_idx]
+    return -1
 
 
 def run(_run, _config, _log):
@@ -172,8 +213,11 @@ def run_sequential(args, logger):
                 timesteps.append(int(name))
 
         if args.load_step == 0:
+            # choose the timestep with the highest return
+            timestep_to_load = load_max_return_timestep(args)
             # choose the max timestep
-            timestep_to_load = max(timesteps)
+            if timestep_to_load == -1:
+                timestep_to_load = max(timesteps)
         else:
             # choose the timestep closest to load_step
             timestep_to_load = min(timesteps, key=lambda x: abs(x - args.load_step))
