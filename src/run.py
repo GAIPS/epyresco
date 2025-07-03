@@ -51,9 +51,12 @@ def load_max_return_timestep(args):
             continue
         with info_file.open("r") as f:
             info = json.load(f)
-        test_return_mean = info.get("test_return_mean", "test_total_return_mean")
-        test_return_mean_T = info.get("test_return_mean_T", "test_total_return_mean_T")
-
+        if "test_return_mean" in info:
+            test_return_mean = info["test_return_mean"]
+            test_return_mean_T = info["test_return_mean_T"]
+        else:
+            test_return_mean = info["test_total_return_mean"]
+            test_return_mean_T = info["test_total_return_mean_T"]
         test_return = [*map(itemgetter("value"), test_return_mean)]
         max_return_idx = np.argmax(test_return)
         return test_return_mean_T[max_return_idx]
